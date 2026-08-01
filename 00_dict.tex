@@ -61,7 +61,17 @@
 \emph{Aysìkenonghu a Lì'upuk leNa'vi}}  		
 \author{Compiled by Stefan G. M\"uller (Plumps)}
 
-\date{\today}
+% Release builds override these values from a temporary CI wrapper.
+\providecommand{\DictionaryReleaseDate}{\today}
+\providecommand{\DictionaryCommitId}{}
+\definecolor{DictionaryReleaseMetadata}{gray}{0.45}
+\date{%
+  \DictionaryReleaseDate%
+  \ifx\DictionaryCommitId\empty
+  \else
+    \\[0.25em]{\scriptsize\color{DictionaryReleaseMetadata}Commit \texttt{\DictionaryCommitId}}%
+  \fi
+}
 
 \maketitle
 % ===== Blindbefehle ======

@@ -1,0 +1,77 @@
+name: Create release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: create-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build and publish release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out current master
+        uses: actions/checkout@v6
+        with:
+          ref: master
+          fetch-depth: 0
+
+      - name: Prepare release metadata
+        id: metadata
+        shell: bash
+        run: |
+          commit_sha="$(git rev-parse HEAD)"
+          short_commit="${commit_sha:0:12}"
+          tag="v$(date -u +'%Y.%m.%d')-${short_commit}"
+          commit_day="$(git show -s --format=%cs HEAD)"
+          commit_date="$(LC_ALL=C date -d "$commit_day" '+%B %-d, %Y')"
+          timestamp="$(date -u +'%Y%m%dT%H%M%SZ')"
+          filename="${timestamp}_master_${short_commit}_AnnotatedDictionary.pdf"
+
+          printf '%s\n' \
+            "\\def\\DictionaryReleaseDate{${commit_date}}" \
+            "\\def\\DictionaryCommitId{${short_commit}}" \
+            '\input{00_dict.tex}' \
+            > release-build.tex
+
+          echo "commit_sha=$commit_sha" >> "$GITHUB_OUTPUT"
+          echo "short_commit=$short_commit" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "commit_date=$commit_date" >> "$GITHUB_OUTPUT"
+          echo "filename=$filename" >> "$GITHUB_OUTPUT"
+
+      - name: Compile release PDF
+        uses: xu-cheng/latex-action@v4
+        with:
+          root_file: release-build.tex
+          compiler: latexmk
+          args: >-
+            -pdf
+            -file-line-error
+            -halt-on-error
+            -interaction=nonstopmode
+
+      - name: Name release PDF
+        shell: bash
+        env:
+          RELEASE_FILENAME: ${{ steps.metadata.outputs.filename }}
+        run: mv -- release-build.pdf "$RELEASE_FILENAME"
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.metadata.outputs.tag }}
+          RELEASE_COMMIT: ${{ steps.metadata.outputs.commit_sha }}
+          RELEASE_FILENAME: ${{ steps.metadata.outputs.filename }}
+        run: >-
+          gh release create "$RELEASE_TAG" "$RELEASE_FILENAME"
+          --target "$RELEASE_COMMIT"
+          --title "Annotated Dictionary $RELEASE_TAG"
+          --generate-notes
+          --latest
