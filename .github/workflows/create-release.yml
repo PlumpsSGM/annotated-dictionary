@@ -31,8 +31,7 @@ jobs:
           tag="v$(date -u +'%Y.%m.%d')-${short_commit}"
           commit_day="$(git show -s --format=%cs HEAD)"
           commit_date="$(LC_ALL=C date -d "$commit_day" '+%B %-d, %Y')"
-          timestamp="$(date -u +'%Y%m%dT%H%M%SZ')"
-          filename="${timestamp}_master_${short_commit}_AnnotatedDictionary.pdf"
+          filename="Annotated Dictionary.pdf"
 
           printf '%s\n' \
             "\\def\\DictionaryReleaseDate{${commit_date}}" \

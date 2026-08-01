@@ -41,25 +41,13 @@ jobs:
             -interaction=nonstopmode
 
       - name: Name compiled PDF
-        id: pdf
         shell: bash
-        env:
-          BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
-          COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-        run: |
-          timestamp="$(date -u +'%Y%m%dT%H%M%SZ')"
-          safe_branch="$(printf '%s' "$BRANCH_NAME" | sed 's/[^A-Za-z0-9._-]/-/g')"
-          short_commit="${COMMIT_SHA:0:12}"
-          basename="${timestamp}_${safe_branch}_${short_commit}_AnnotatedDictionary"
-          filename="${basename}.pdf"
-          mv -- 00_dict.pdf "$filename"
-          echo "basename=$basename" >> "$GITHUB_OUTPUT"
-          echo "filename=$filename" >> "$GITHUB_OUTPUT"
+        run: mv -- 00_dict.pdf "Annotated Dictionary.pdf"
 
       - name: Upload compiled PDF
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ steps.pdf.outputs.basename }}
-          path: ${{ steps.pdf.outputs.filename }}
+          name: Annotated Dictionary
+          path: Annotated Dictionary.pdf
           if-no-files-found: error
           retention-days: 30
