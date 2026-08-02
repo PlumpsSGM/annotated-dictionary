@@ -1,0 +1,132 @@
+name: Create release
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_commit:
+        description: Commit SHA from master (leave empty for current master)
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: create-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build and publish release
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out current master
+        uses: actions/checkout@v6
+        with:
+          ref: master
+          fetch-depth: 0
+
+      - name: Prepare release metadata
+        id: metadata
+        shell: bash
+        env:
+          TARGET_COMMIT: ${{ inputs.target_commit }}
+        run: |
+          master_sha="$(git rev-parse HEAD)"
+          requested_commit="${TARGET_COMMIT:-$master_sha}"
+          commit_sha="$(git rev-parse --verify --end-of-options "${requested_commit}^{commit}")"
+
+          if ! git merge-base --is-ancestor "$commit_sha" "$master_sha"; then
+            echo "Selected commit is not part of the current master history: $commit_sha" >&2
+            exit 1
+          fi
+
+          short_commit="${commit_sha:0:12}"
+          commit_day="$(git show -s --format=%cs "$commit_sha")"
+          tag="v${commit_day//-/.}-${short_commit}"
+          commit_date="$(LC_ALL=C date -d "$commit_day" '+%B %-d, %Y')"
+          filename="Annotated Dictionary.pdf"
+          repository_name="${GITHUB_REPOSITORY#*/}"
+          release_identifier="${repository_name}-${tag}"
+          release_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/releases/tag/${tag}"
+
+          python3 scripts/write_build_metadata.py \
+            --date "$commit_date" \
+            --identifier "$release_identifier" \
+            --url "$release_url" \
+            --output "$RUNNER_TEMP/release-build.tex"
+
+          git checkout --detach "$commit_sha"
+          cp "$RUNNER_TEMP/release-build.tex" release-build.tex
+
+          echo "commit_sha=$commit_sha" >> "$GITHUB_OUTPUT"
+          echo "short_commit=$short_commit" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "commit_date=$commit_date" >> "$GITHUB_OUTPUT"
+          echo "filename=$filename" >> "$GITHUB_OUTPUT"
+          if [[ "$commit_sha" == "$master_sha" ]]; then
+            echo "is_current_master=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_current_master=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Compile release PDF
+        uses: xu-cheng/latex-action@v4
+        with:
+          root_file: release-build.tex
+          compiler: latexmk
+          args: >-
+            -pdf
+            -file-line-error
+            -halt-on-error
+            -interaction=nonstopmode
+
+      - name: Name release PDF
+        shell: bash
+        env:
+          RELEASE_FILENAME: ${{ steps.metadata.outputs.filename }}
+        run: mv -- release-build.pdf "$RELEASE_FILENAME"
+
+      - name: Create commit-dated release tag
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ steps.metadata.outputs.tag }}
+          RELEASE_COMMIT: ${{ steps.metadata.outputs.commit_sha }}
+        run: |
+          if git rev-parse --verify --quiet "refs/tags/${RELEASE_TAG}^{commit}" >/dev/null; then
+            tagged_commit="$(git rev-parse "refs/tags/${RELEASE_TAG}^{commit}")"
+            if [[ "$tagged_commit" != "$RELEASE_COMMIT" ]]; then
+              echo "Tag $RELEASE_TAG already points to a different commit." >&2
+              exit 1
+            fi
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          tag_date="$(git show -s --format=%cI "$RELEASE_COMMIT")"
+          GIT_COMMITTER_DATE="$tag_date" git tag -a "$RELEASE_TAG" "$RELEASE_COMMIT" \
+            -m "Annotated Dictionary $RELEASE_TAG"
+          git push origin "refs/tags/$RELEASE_TAG"
+
+      - name: Publish GitHub Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.metadata.outputs.tag }}
+          RELEASE_COMMIT: ${{ steps.metadata.outputs.commit_sha }}
+          RELEASE_FILENAME: ${{ steps.metadata.outputs.filename }}
+          IS_CURRENT_MASTER: ${{ steps.metadata.outputs.is_current_master }}
+        run: |
+          latest_flag="--latest=false"
+          if [[ "$IS_CURRENT_MASTER" == "true" ]]; then
+            latest_flag="--latest"
+          fi
+
+          gh release create "$RELEASE_TAG" "$RELEASE_FILENAME" \
+            --verify-tag \
+            --title "Annotated Dictionary $RELEASE_TAG" \
+            --generate-notes \
+            "$latest_flag"

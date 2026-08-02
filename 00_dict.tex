@@ -57,13 +57,44 @@
 % DOKUMENT
 
 \begin{document}
-\title{\B{An Annotated Na'vi Dictionary}\footnote{This work is licensed under the Creative Commons Attribution-ShareAlike License, version 3.0. To view a copy of this license, visit https://creativecommons.org/licenses/by-sa/3.0/.} \\
-\emph{Aysìkenonghu a Lì'upuk leNa'vi}}  		
-\author{Compiled by Stefan G. M\"uller (Plumps)}
+% CI builds override these values from a temporary metadata wrapper.
+\providecommand{\DictionaryReleaseDate}{\today}
+\providecommand{\DictionaryBuildIdentifier}{annotated-dictionary-dev-local}
+\providecommand{\DictionaryBuildUrl}{}
+\definecolor{DictionaryBuildMetadata}{gray}{0.45}
+\newcommand{\DictionaryBuildFooter}{%
+  \hfil{\scriptsize\color{DictionaryBuildMetadata}%
+  \ifx\DictionaryBuildUrl\empty
+    \texttt{\DictionaryBuildIdentifier}%
+  \else
+    \begingroup\hypersetup{pdfborder={0 0 0}}%
+    \href{\DictionaryBuildUrl}{\texttt{\DictionaryBuildIdentifier}}%
+    \endgroup
+  \fi
+  }\hfil
+}
 
-\date{\today}
+% Keep the title metadata on the same baseline as regular page numbers.
+\makeatletter
+\let\DictionaryOriginalEmptyPageStyle\ps@empty
+\def\ps@empty{%
+  \let\@mkboth\@gobbletwo
+  \let\@oddhead\@empty
+  \let\@evenhead\@empty
+  \def\@oddfoot{\DictionaryBuildFooter}%
+  \let\@evenfoot\@oddfoot
+}
+\makeatother
+
+\title{\B{An Annotated Na'vi Dictionary}\footnote{This work is licensed under the Creative Commons Attribution-ShareAlike License, version 3.0. To view a copy of this license, visit https://creativecommons.org/licenses/by-sa/3.0/.} \\
+\emph{Aysìkenonghu a Lì'upuk leNa'vi}}
+\author{Compiled by Stefan G. M\"uller (Plumps)}
+\date{\DictionaryReleaseDate}
 
 \maketitle
+\makeatletter
+\let\ps@empty\DictionaryOriginalEmptyPageStyle
+\makeatother
 % ===== Blindbefehle ======
 % \I{[]}
 % \cp{}

@@ -1,0 +1,72 @@
+name: Validate and build dictionary
+
+on:
+  push:
+    branches-ignore:
+      - master
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dictionary-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dictionary-checks:
+    name: Dictionary checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Prepare build metadata
+        shell: bash
+        env:
+          COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+          REPOSITORY_NAME: ${{ github.event.repository.name }}
+        run: |
+          short_commit="${COMMIT_SHA:0:12}"
+          commit_day="$(git show -s --format=%cs "$COMMIT_SHA")"
+          commit_date="$(LC_ALL=C date -d "$commit_day" '+%B %-d, %Y')"
+          build_identifier="${REPOSITORY_NAME}-dev-${BRANCH_NAME} Commit ${short_commit}"
+          build_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commit/${COMMIT_SHA}"
+
+          python3 scripts/write_build_metadata.py \
+            --date "$commit_date" \
+            --identifier "$build_identifier" \
+            --url "$build_url" \
+            --output build-artifact.tex
+
+      - name: Validate internal links
+        run: python3 scripts/validate_dictionary.py
+
+      - name: Compile LaTeX document
+        uses: xu-cheng/latex-action@v4
+        with:
+          root_file: build-artifact.tex
+          compiler: latexmk
+          args: >-
+            -pdf
+            -file-line-error
+            -halt-on-error
+            -interaction=nonstopmode
+
+      - name: Name compiled PDF
+        shell: bash
+        run: mv -- build-artifact.pdf "Annotated Dictionary.pdf"
+
+      - name: Upload compiled PDF
+        uses: actions/upload-artifact@v7
+        with:
+          name: Annotated Dictionary
+          path: Annotated Dictionary.pdf
+          if-no-files-found: error
+          retention-days: 30
