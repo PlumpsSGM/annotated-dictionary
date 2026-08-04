@@ -2,8 +2,6 @@ name: Validate and build dictionary
 
 on:
   push:
-    branches-ignore:
-      - master
   pull_request:
     branches:
       - master
@@ -60,10 +58,12 @@ jobs:
             -interaction=nonstopmode
 
       - name: Name compiled PDF
+        if: github.event_name != 'push' || github.ref != 'refs/heads/master'
         shell: bash
         run: mv -- build-artifact.pdf "Annotated Dictionary.pdf"
 
       - name: Upload compiled PDF
+        if: github.event_name != 'push' || github.ref != 'refs/heads/master'
         uses: actions/upload-artifact@v7
         with:
           name: Annotated Dictionary
