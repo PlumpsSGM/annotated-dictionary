@@ -60,13 +60,13 @@ jobs:
       - name: Name compiled PDF
         if: github.event_name != 'push' || github.ref != 'refs/heads/master'
         shell: bash
-        run: mv -- build-artifact.pdf "Annotated Dictionary.pdf"
+        run: mv -- build-artifact.pdf "AnnotatedDictionary.pdf"
 
       - name: Upload compiled PDF
         if: github.event_name != 'push' || github.ref != 'refs/heads/master'
         uses: actions/upload-artifact@v7
         with:
-          name: Annotated Dictionary
-          path: Annotated Dictionary.pdf
+          name: AnnotatedDictionary
+          path: AnnotatedDictionary.pdf
           if-no-files-found: error
           retention-days: 30

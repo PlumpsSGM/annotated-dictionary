@@ -47,7 +47,7 @@ jobs:
           commit_day="$(git show -s --format=%cs "$commit_sha")"
           tag="v${commit_day//-/.}-${short_commit}"
           commit_date="$(LC_ALL=C date -d "$commit_day" '+%B %-d, %Y')"
-          filename="Annotated Dictionary.pdf"
+          filename="AnnotatedDictionary.pdf"
           repository_name="${GITHUB_REPOSITORY#*/}"
           release_identifier="${repository_name}-${tag}"
           release_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/releases/tag/${tag}"
