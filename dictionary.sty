@@ -26,6 +26,17 @@
 \hyphenpenalty=1000
 \setlength{\parindent}{0cm}
 
+% Dictionary chapter structure
+\newcommand{\Chapter}[4]{%
+  \pdfbookmark[0]{#1}{#2}%
+  \begin{center}%
+    \section*{#3}%
+  \end{center}%
+  \begin{multicols}{2}%
+    #4%
+  \end{multicols}%
+}
+
 % Dictionary entry commands
 \newcommand{\hi}{\hangindent=0.3cm}
 \newcommand{\B}[1]{\textbf{#1}}
