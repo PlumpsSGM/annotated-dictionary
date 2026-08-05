@@ -12,6 +12,7 @@ from pathlib import Path
 
 
 COMMAND_PATTERN = re.compile(r"\\(?P<command>HL|HT)\s*\{(?P<target>[^{}]*)\}")
+HEADWORD_PATTERN = re.compile(r"\\Headword\s*")
 REDIRECT_PATTERN = re.compile(r"\\Redirect\s*")
 
 
@@ -85,6 +86,19 @@ def find_references(path: Path, repository: Path) -> list[Reference]:
         )
         for match in COMMAND_PATTERN.finditer(source)
     ]
+
+    for match in HEADWORD_PATTERN.finditer(source):
+        target_argument = braced_argument(source, match.end())
+        if target_argument is None:
+            continue
+        references.append(
+            Reference(
+                command="HT",
+                target=target_argument[0].strip(),
+                path=path.relative_to(repository),
+                line=source.count("\n", 0, match.start()) + 1,
+            )
+        )
 
     for match in REDIRECT_PATTERN.finditer(source):
         display_argument = braced_argument(source, match.end())

@@ -47,6 +47,17 @@
 \newcommand{\cb}[1]{{\color{blue}{#1}}}
 \newcommand{\HT}[2]{\hypertarget{#1}{#2}}
 \newcommand{\HL}[2]{\hyperlink{#1}{#2}}
+\newcommand{\DictionaryEntry}[1]{%
+  \begingroup
+  \hi
+  \ignorespaces#1\unskip\par
+  \endgroup
+}
+\newcommand{\Headword}[3]{%
+  \DictionaryEntry{%
+    \HT{#1}{#2}\unskip\space\ignorespaces#3%
+  }%
+}
 \newcommand{\Redirect}[3]{%
   \hi
   #1~:~\HL{#2}{#3}%
