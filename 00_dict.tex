@@ -1,121 +1,15 @@
-% DOKUMENTENKLASSE
 \documentclass[a4paper,11pt]{report}
-
-% PAPIERFORMAT 
-\usepackage[a4paper]{geometry}			% verkleinert die margins
-\usepackage{fullpage}				% verkleinert den größten Teil der margins um etwa 1,5cm
-	\frenchspacing				% kein zusätzlicher Abstand nach Punkt
-
-% SPRACHE
-\usepackage[utf8]{inputenc}				% für spezielle Zeichen, Umlaute etc.
-\usepackage[T1]{fontenc}
-\usepackage[english]{babel}				% [ngerman] setzt die Spracheinstellung auf Neue dt. Rechtschreibung
-
-% SILBENTRENNUNG
- \tolerance=1000 
- \hyphenpenalty=1000
-
-% LINKDARSTELLUNG
-
-\usepackage{hyphenat}	
-\usepackage{hyperref, bookmark}
-
-% TABELLEN
-% \usepackage{tabularx}
-\usepackage{array}
-
-% ZEICHEN
-\usepackage{pifont}						% spezielle (Pfeile etc.)
-\usepackage{textcomp}					% Gradzeichen
-\usepackage{tipa}						% IPA-Darstellung
-
-% FARBEN 
-\usepackage[usenames,dvipsnames]{color}	% für die 68 Standardfarben
-
-% SPALTEN
-\usepackage{multicol}						% Spalten im Dokument mit \begin{multicols}{2, 3, 4 … 10}
-% \usepackage{draftwatermark}				% kreiert Wasserzeichen 'Draft' (kann mit colorpackage kollidieren, ansonst nach geometry einfügen)
-% \SetWatermarkScale{5}						% vergrößert Schriftart
-% \SetWatermarkLightness{0.9}				% verändert Helligkeit des Textes 0=schwarz, 1=weiß
-%\SetWatermarkText{\textsc{Rohfassung}}	% verändert Standarttext
-
-% EINZÜGE
-\setlength{\parindent}{0cm}				% lässt Paragraphen NICHT (0cm) einrücken
-
-% DEFINIERTE BEFEHLE						kreiert neue (verkürzte) Befehle
-\newcommand{\hi}{\hangindent=0.3cm}		
-\newcommand{\B}[1]{\textbf{#1}}
-\newcommand{\I}[1]{\textipa{#1}}
-\newcommand{\on}[1]{\oldstylenums{#1}}
-\newcommand{\LINK}[2]{{\color{blue}\href{#1}{\textsc{#2}}}}
-\newcommand{\cp}[1]{{\color{Plum}{#1}}}
-\newcommand{\cb}[1]{{\color{blue}{#1}}}
-\newcommand{\HT}[2]{\hypertarget{#1}{#2}}
-\newcommand{\HL}[2]{\hyperlink{#1}{#2}}
-\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+\usepackage{dictionary}
 
 % DOKUMENT
 
 \begin{document}
-% CI builds override these values from a temporary metadata wrapper.
-\providecommand{\DictionaryReleaseDate}{\today}
-\providecommand{\DictionaryBuildIdentifier}{annotated-dictionary-dev-local}
-\providecommand{\DictionaryBuildUrl}{}
-\definecolor{DictionaryBuildMetadata}{gray}{0.45}
-\newcommand{\DictionaryBuildFooter}{%
-  \hfil{\scriptsize\color{DictionaryBuildMetadata}%
-  \ifx\DictionaryBuildUrl\empty
-    \texttt{\DictionaryBuildIdentifier}%
-  \else
-    \begingroup\hypersetup{pdfborder={0 0 0}}%
-    \href{\DictionaryBuildUrl}{\texttt{\DictionaryBuildIdentifier}}%
-    \endgroup
-  \fi
-  }\hfil
-}
-
-% Keep the title metadata on the same baseline as regular page numbers.
-\makeatletter
-\let\DictionaryOriginalEmptyPageStyle\ps@empty
-\def\ps@empty{%
-  \let\@mkboth\@gobbletwo
-  \let\@oddhead\@empty
-  \let\@evenhead\@empty
-  \def\@oddfoot{\DictionaryBuildFooter}%
-  \let\@evenfoot\@oddfoot
-}
-\makeatother
-
 \title{\B{An Annotated Na'vi Dictionary}\footnote{This work is licensed under the Creative Commons Attribution-ShareAlike License, version 3.0. To view a copy of this license, visit https://creativecommons.org/licenses/by-sa/3.0/.} \\
 \emph{Aysìkenonghu a Lì'upuk leNa'vi}}
 \author{Compiled by Stefan G. M\"uller (Plumps)}
 \date{\DictionaryReleaseDate}
 
-\maketitle
-\makeatletter
-\let\ps@empty\DictionaryOriginalEmptyPageStyle
-\makeatother
-% ===== Blindbefehle ======
-% \I{[]}
-% \cp{}
-% \B{}
-% \emph{}
-% $\cdot$
-% \LINK{}{}
-% \HT{}{}						akzeptiert kein ì (= I), ä (= A)
-% \HL{}{\B{
-%  \ding{96} botany, flora 
-%  \ding{214} opposite of 
-%  \ding{43} see, compare with entry
-%  \ding{246} military, combat, archery
-% \\  \on{}. \B{}, .
-% (\emph{a. subjective})
-% (\emph{b. agentive})
-% (\emph{c. patientive})
-% (\emph{d. genitive})
-% (\emph{e. dative})
-% (\emph{f. topic})
-% (\textsc{rn}: \B{\cp{}} \I{[]})
+\DictionaryMakeTitle
 
 % ======= ToC ??? ==========
 
