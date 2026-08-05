@@ -12,6 +12,8 @@ from pathlib import Path
 
 
 COMMAND_PATTERN = re.compile(r"\\(?P<command>HL|HT)\s*\{(?P<target>[^{}]*)\}")
+HEADWORD_PATTERN = re.compile(r"\\Headword\s*")
+REDIRECT_PATTERN = re.compile(r"\\Redirect\s*")
 
 
 @dataclass(frozen=True)
@@ -46,9 +48,36 @@ def strip_comments(source: str) -> str:
     return "".join(cleaned_lines)
 
 
+def braced_argument(source: str, position: int) -> tuple[str, int] | None:
+    while position < len(source) and source[position].isspace():
+        position += 1
+    if position >= len(source) or source[position] != "{":
+        return None
+
+    start = position + 1
+    depth = 1
+    position += 1
+    while position < len(source):
+        character = source[position]
+        preceding_backslashes = 0
+        cursor = position - 1
+        while cursor >= 0 and source[cursor] == "\\":
+            preceding_backslashes += 1
+            cursor -= 1
+        if preceding_backslashes % 2 == 0:
+            if character == "{":
+                depth += 1
+            elif character == "}":
+                depth -= 1
+                if depth == 0:
+                    return source[start:position], position + 1
+        position += 1
+    return None
+
+
 def find_references(path: Path, repository: Path) -> list[Reference]:
     source = strip_comments(path.read_text(encoding="utf-8"))
-    return [
+    references = [
         Reference(
             command=match.group("command"),
             target=match.group("target").strip(),
@@ -57,6 +86,37 @@ def find_references(path: Path, repository: Path) -> list[Reference]:
         )
         for match in COMMAND_PATTERN.finditer(source)
     ]
+
+    for match in HEADWORD_PATTERN.finditer(source):
+        target_argument = braced_argument(source, match.end())
+        if target_argument is None:
+            continue
+        references.append(
+            Reference(
+                command="HT",
+                target=target_argument[0].strip(),
+                path=path.relative_to(repository),
+                line=source.count("\n", 0, match.start()) + 1,
+            )
+        )
+
+    for match in REDIRECT_PATTERN.finditer(source):
+        display_argument = braced_argument(source, match.end())
+        if display_argument is None:
+            continue
+        target_argument = braced_argument(source, display_argument[1])
+        if target_argument is None:
+            continue
+        references.append(
+            Reference(
+                command="HL",
+                target=target_argument[0].strip(),
+                path=path.relative_to(repository),
+                line=source.count("\n", 0, match.start()) + 1,
+            )
+        )
+
+    return references
 
 
 def annotation_escape(value: str, *, property_value: bool = False) -> str:

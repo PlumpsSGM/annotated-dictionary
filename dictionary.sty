@@ -1,0 +1,116 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{dictionary}[2026/08/05 Annotated Dictionary formatting and commands]
+
+% Page layout and language support
+\RequirePackage[a4paper]{geometry}
+\RequirePackage{fullpage}
+\RequirePackage[utf8]{inputenc}
+\RequirePackage[T1]{fontenc}
+\RequirePackage[english]{babel}
+\RequirePackage{hyphenat}
+
+% Links and bookmarks
+\RequirePackage{hyperref}
+\RequirePackage{bookmark}
+
+% Dictionary typography and layout
+\RequirePackage{array}
+\RequirePackage{pifont}
+\RequirePackage{textcomp}
+\RequirePackage{tipa}
+\RequirePackage[usenames,dvipsnames]{color}
+\RequirePackage{multicol}
+
+\frenchspacing
+\tolerance=1000
+\hyphenpenalty=1000
+\setlength{\parindent}{0cm}
+
+% Dictionary chapter structure
+\newcommand{\Chapter}[4]{%
+  \pdfbookmark[0]{#1}{#2}%
+  \begin{center}%
+    \section*{#3}%
+  \end{center}%
+  \begin{multicols}{2}%
+    #4%
+  \end{multicols}%
+}
+
+% Dictionary entry commands
+\newcommand{\hi}{\hangindent=0.3cm}
+\newcommand{\B}[1]{\textbf{#1}}
+\newcommand{\I}[1]{\textipa{#1}}
+\newcommand{\on}[1]{\oldstylenums{#1}}
+\newcommand{\LINK}[2]{{\color{blue}\href{#1}{\textsc{#2}}}}
+\newcommand{\cp}[1]{{\color{Plum}{#1}}}
+\newcommand{\cb}[1]{{\color{blue}{#1}}}
+\newcommand{\HT}[2]{\hypertarget{#1}{#2}}
+\newcommand{\HL}[2]{\hyperlink{#1}{#2}}
+\newcommand{\DictionaryEntry}[1]{%
+  \begingroup
+  \hi
+  \ignorespaces#1\unskip\par
+  \endgroup
+}
+\newcommand{\Headword}[3]{%
+  \DictionaryEntry{%
+    \HT{#1}{#2}\unskip\space\ignorespaces#3%
+  }%
+}
+\newcommand{\Redirect}[3]{%
+  \hi
+  #1~:~\HL{#2}{#3}%
+}
+
+% Entry authoring reference:
+% \I{[]}, \cp{}, \B{}, \emph{}, $\cdot$, \LINK{}{}, \HT{}{}, \HL{}{}
+% Hyperlink targets use ASCII substitutions such as ì = I and ä = A.
+% \ding{96}  botany, flora
+% \ding{214} opposite of
+% \ding{43}  see or compare with entry
+% \ding{246} military, combat, archery
+% \\ \on{}. \B{}, .
+% (\emph{a. subjective}) through (\emph{f. topic})
+% (\textsc{rn}: \B{\cp{}} \I{[]})
+
+% Footnote presentation
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+
+% CI builds override these defaults through a temporary metadata wrapper.
+\providecommand{\DictionaryReleaseDate}{\today}
+\providecommand{\DictionaryBuildIdentifier}{annotated-dictionary-dev-local}
+\providecommand{\DictionaryBuildUrl}{}
+\definecolor{DictionaryBuildMetadata}{gray}{0.45}
+
+\newcommand{\DictionaryBuildFooter}{%
+  \hfil{\scriptsize\color{DictionaryBuildMetadata}%
+  \ifx\DictionaryBuildUrl\empty
+    \texttt{\DictionaryBuildIdentifier}%
+  \else
+    \begingroup
+      \hypersetup{pdfborder={0 0 0}}%
+      \href{\DictionaryBuildUrl}{\texttt{\DictionaryBuildIdentifier}}%
+    \endgroup
+  \fi
+  }\hfil
+}
+
+% Give only the title page a footer on the baseline used by page numbers.
+\makeatletter
+\let\DictionaryOriginalEmptyPageStyle\ps@empty
+\newcommand{\DictionaryTitlePageStyle}{%
+  \let\@mkboth\@gobbletwo
+  \let\@oddhead\@empty
+  \let\@evenhead\@empty
+  \def\@oddfoot{\DictionaryBuildFooter}%
+  \let\@evenfoot\@oddfoot
+}
+\newcommand{\DictionaryMakeTitle}{%
+  \let\ps@empty\DictionaryTitlePageStyle
+  \maketitle
+  \let\ps@empty\DictionaryOriginalEmptyPageStyle
+}
+\makeatother
+
+\endinput
