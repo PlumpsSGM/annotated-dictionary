@@ -63,6 +63,38 @@
   #1~:~\HL{#2}{#3}%
 }
 
+% Text arguments of structural macros take a plain /, set as \slash with any
+% spaces around it removed. A / inside braces is left alone.
+\newcommand{\Dictionary@text}[1]{\Dictionary@slashes#1/\@nil}
+\def\Dictionary@slashes#1/#2\@nil{%
+  #1%
+  \if\relax\detokenize{#2}\relax\else
+    \unskip\slash\ignorespaces
+    \Dictionary@slashes#2\@nil
+  \fi
+}
+
+% A gloss ends in a period unless it already ends in ? or !.
+\newcommand{\Dictionary@period}[1]{%
+  \in@{?\@nil}{#1\@nil}%
+  \ifin@\else
+    \in@{!\@nil}{#1\@nil}%
+    \ifin@\else.\fi
+  \fi
+}
+
+\newcounter{DictionaryDerivative}
+\newcommand{\Derivatives}[1]{%
+  \\\textsc{Derivatives}: \ding{43}%
+  \setcounter{DictionaryDerivative}{0}%
+  #1\unskip
+}
+\newcommand{\Derivative}[3]{%
+  \unskip\stepcounter{DictionaryDerivative}%
+  \space\on{\arabic{DictionaryDerivative}}.~%
+  \HL{#1}{\B{\Dictionary@text{#2}}}, \Dictionary@text{#3}\Dictionary@period{#3}%
+}
+
 % Entry authoring reference:
 % \I{[]}, \cp{}, \B{}, \emph{}, $\cdot$, \LINK{}{}, \HT{}{}, \HL{}{}
 % Hyperlink targets use ASCII substitutions such as ì = I and ä = A.
@@ -70,7 +102,7 @@
 % \ding{214} opposite of
 % \ding{43}  see or compare with entry
 % \ding{246} military, combat, archery
-% \\ \on{}. \B{}, .
+% \Derivatives{\Derivative{anchor}{dis\-play}{gloss, no final period}}, last in the entry
 % (\emph{a. subjective}) through (\emph{f. topic})
 % (\textsc{rn}: \B{\cp{}} \I{[]})
 
